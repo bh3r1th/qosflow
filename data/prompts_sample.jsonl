@@ -1,0 +1,30 @@
+{"prompt_id": "extract-01", "text": "Extract the invoice number from: Invoice INV-2024-0098, date 2024-03-01, amount $129.00.", "tags": ["extraction"], "expected": "INV-2024-0098"}
+{"prompt_id": "extract-02", "text": "Extract the email domain: Contact us at support@acme.io for help.", "tags": ["extraction"], "expected": "acme.io"}
+{"prompt_id": "extract-03", "text": "Return the order id from this note: shipped order ORD-7781 via UPS.", "tags": ["extraction"], "expected": "ORD-7781"}
+{"prompt_id": "extract-04", "text": "Find the city in address: 22 King St, Boston, MA 02109.", "tags": ["extraction"], "expected": "Boston"}
+{"prompt_id": "extract-05", "text": "Extract the ticket code: incident #TCK-4412 was resolved.", "tags": ["extraction"], "expected": "TCK-4412"}
+{"prompt_id": "extract-06", "text": "Identify the product SKU in text: item sku=ZX-44-BLUE quantity 2.", "tags": ["extraction"], "expected": "ZX-44-BLUE"}
+{"prompt_id": "extract-07", "text": "Extract just the date from: Meeting confirmed for 2025-01-14 at 09:30.", "tags": ["extraction"], "expected": "2025-01-14"}
+{"prompt_id": "extract-08", "text": "Get the country code from phone +1-415-555-0188.", "tags": ["extraction"], "expected": "+1"}
+{"prompt_id": "extract-09", "text": "Extract the percentage value from: CPU utilization hit 83% at peak.", "tags": ["extraction"], "expected": "83%"}
+{"prompt_id": "extract-10", "text": "Find the username in login string user=marina_lee status=ok.", "tags": ["extraction"], "expected": "marina_lee"}
+{"prompt_id": "extract-11", "text": "Extract tracking number from: package tracking TRK993311US expected tomorrow.", "tags": ["extraction"], "expected": "TRK993311US"}
+{"prompt_id": "extract-12", "text": "Return the hex color in sentence: Theme primary color is #1A73E8 for links.", "tags": ["extraction"], "expected": "#1A73E8"}
+{"prompt_id": "qa-01", "text": "What is 7 + 5?", "tags": ["qa", "short"], "expected": "12"}
+{"prompt_id": "qa-02", "text": "What is the capital of France?", "tags": ["qa", "short"], "expected": "Paris"}
+{"prompt_id": "qa-03", "text": "How many days are in a leap year?", "tags": ["qa", "short"], "expected": "366"}
+{"prompt_id": "qa-04", "text": "What gas do plants absorb from the atmosphere?", "tags": ["qa", "short"], "expected": "Carbon dioxide"}
+{"prompt_id": "qa-05", "text": "Who wrote '1984'?", "tags": ["qa", "short"], "expected": "George Orwell"}
+{"prompt_id": "qa-06", "text": "What is H2O commonly called?", "tags": ["qa", "short"], "expected": "Water"}
+{"prompt_id": "qa-07", "text": "Which planet is known as the Red Planet?", "tags": ["qa", "short"], "expected": "Mars"}
+{"prompt_id": "qa-08", "text": "What is the square root of 81?", "tags": ["qa", "short"], "expected": "9"}
+{"prompt_id": "qa-09", "text": "In computing, what does CPU stand for?", "tags": ["qa", "short"], "expected": "Central Processing Unit"}
+{"prompt_id": "qa-10", "text": "What is the freezing point of water in Celsius?", "tags": ["qa", "short"], "expected": "0"}
+{"prompt_id": "qa-11", "text": "What is the largest ocean on Earth?", "tags": ["qa", "short"], "expected": "Pacific Ocean"}
+{"prompt_id": "qa-12", "text": "How many continents are there?", "tags": ["qa", "short"], "expected": "7"}
+{"prompt_id": "inst-01", "text": "Write a concise release note summarizing a bug fix where duplicate billing events were removed and add one sentence about customer impact.", "tags": ["instruction"]}
+{"prompt_id": "inst-02", "text": "Draft a polite email to a user explaining that their password reset link expired and include clear next steps in a numbered list.", "tags": ["instruction"]}
+{"prompt_id": "inst-03", "text": "You are assisting with incident response. Produce a runbook section titled 'Immediate Containment'.\nInclude: 1) validation checks to confirm active abuse, 2) a checklist for temporary access revocation,\n3) guidance for preserving logs and memory snapshots, and 4) a short communication template for stakeholders.\nKeep the tone operational and avoid speculative language.", "tags": ["instruction"]}
+{"prompt_id": "inst-04", "text": "Create a migration plan for moving a medium-size REST API service from a single region deployment to active-active in two regions.\nThe plan should include prerequisites, phased rollout, risk controls, rollback strategy, observability updates, database replication considerations,\nand a final acceptance checklist. Explicitly mention ownership boundaries for platform, application, and security teams.", "tags": ["instruction"]}
+{"prompt_id": "inst-05", "text": "Generate a policy memo for engineering managers about reducing flaky tests.\nAddress root-cause taxonomy, triage SLAs, quarantine policy, dashboarding expectations,\nand incentives that balance delivery speed with test reliability. Provide concrete examples of acceptable and unacceptable behaviors,\nthen end with a 30-60-90 day adoption timeline.", "tags": ["instruction"]}
+{"prompt_id": "inst-06", "text": "Provide five creative but realistic names for an internal tool that monitors queue latency and token throughput for language model serving clusters.", "tags": ["instruction"]}
