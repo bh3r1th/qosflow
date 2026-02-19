@@ -1,0 +1,4 @@
+target_url: http://127.0.0.1:8000/v1/completions
+duration_s: 10
+poisson_rate: 2.0
+timeout_s: 30

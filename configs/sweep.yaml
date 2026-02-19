@@ -1,0 +1,5 @@
+experiments:
+  - name: baseline
+    poisson_rate: 2.0
+  - name: stress
+    poisson_rate: 8.0
