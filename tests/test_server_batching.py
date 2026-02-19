@@ -52,3 +52,5 @@ def test_generate_response_contains_batching_mode(monkeypatch) -> None:  # noqa:
 
     assert res.status_code == 200
     assert res.json()["batching_mode"] == "off"
+    assert isinstance(res.json()["ts_recv_ns"], int)
+    assert isinstance(res.json()["ts_done_ns"], int)

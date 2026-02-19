@@ -135,6 +135,7 @@ async def run_load(
     async def fire_request(prompt: PromptRecord, repeat_idx: int, should_record: bool) -> None:
         async with semaphore:
             ts_start_ns = time.time_ns()
+            ts_send_ns = ts_start_ns
             output_text = ""
             status_code = 0
             err_msg: str | None = None
@@ -142,6 +143,8 @@ async def run_load(
             queue_ms: float | None = None
             prefill_ms: float | None = None
             decode_ms: float | None = None
+            ts_recv_ns: int | None = None
+            ts_done_ns: int | None = None
 
             try:
                 output_text, timings, status_code = await client.generate(
@@ -152,10 +155,32 @@ async def run_load(
                 queue_ms = timings.get("queue_ms")
                 prefill_ms = timings.get("prefill_ms")
                 decode_ms = timings.get("decode_ms")
+                ts_recv_ns = timings.get("ts_recv_ns")
+                ts_done_ns = timings.get("ts_done_ns")
             except Exception as exc:  # noqa: BLE001
                 err_msg = str(exc)
             ts_end_ns = time.time_ns()
+            ts_resp_ns = ts_end_ns
             total_ms = (ts_end_ns - ts_start_ns) / 1_000_000.0
+
+            server_total_ns: int | None = None
+            if ts_recv_ns is not None and ts_done_ns is not None:
+                server_total_ns = max(0, ts_done_ns - ts_recv_ns)
+
+            network_rtt_ms: float | None = None
+            network_rtt_ns: float | None = None
+            if server_total_ns is not None:
+                network_rtt_ns = float((ts_resp_ns - ts_send_ns) - server_total_ns)
+                network_rtt_ms = network_rtt_ns / 1_000_000.0
+
+            server_queue_ms: float | None = None
+            if ts_recv_ns is not None and network_rtt_ns is not None:
+                queue_ns = max(0.0, float(ts_recv_ns - ts_send_ns) - (network_rtt_ns / 2.0))
+                server_queue_ms = queue_ns / 1_000_000.0
+
+            server_compute_ms: float | None = None
+            if server_total_ns is not None:
+                server_compute_ms = server_total_ns / 1_000_000.0
 
             if not should_record:
                 return
@@ -184,6 +209,13 @@ async def run_load(
                     queue_ms=queue_ms,
                     prefill_ms=prefill_ms,
                     decode_ms=decode_ms,
+                    ts_send_ns=ts_send_ns,
+                    ts_recv_ns=ts_recv_ns,
+                    ts_done_ns=ts_done_ns,
+                    ts_resp_ns=ts_resp_ns,
+                    network_rtt_ms=network_rtt_ms,
+                    server_queue_ms=server_queue_ms,
+                    server_compute_ms=server_compute_ms,
                 ),
                 prompt_hash=sha256_normalized_text(prompt.text),
                 output_hash=sha256_normalized_text(output_text),

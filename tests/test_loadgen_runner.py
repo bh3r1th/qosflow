@@ -23,7 +23,16 @@ class _DeterministicRng:
 
 class _FakeClient:
     async def generate(self, prompt: str, params=None):  # noqa: ANN001, ANN201
-        return f"ok:{prompt}", {"prefill_ms": 1.0, "decode_ms": 2.0}, 200
+        return (
+            f"ok:{prompt}",
+            {
+                "prefill_ms": 1.0,
+                "decode_ms": 2.0,
+                "ts_recv_ns": 2_000_000_000,
+                "ts_done_ns": 2_000_500_000,
+            },
+            200,
+        )
 
     async def aclose(self) -> None:
         return None
@@ -97,3 +106,11 @@ def test_run_load_respects_warmup_and_repeats(tmp_path: Path) -> None:
     assert summary.failed == 0
     assert len(rows) == summary.sent
     assert {row["repeat_idx"] for row in rows}.issubset({0, 1, 2})
+
+    first = rows[0]["system"]
+    assert first["ts_send_ns"] is not None
+    assert first["ts_resp_ns"] is not None
+    assert first["ts_recv_ns"] == 2_000_000_000
+    assert first["ts_done_ns"] == 2_000_500_000
+    assert first["server_compute_ms"] == 0.5
+    assert first["server_queue_ms"] >= 0.0

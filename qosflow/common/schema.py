@@ -37,6 +37,13 @@ class TraceSystem(StrictBaseModel):
     queue_ms: float | None = None
     prefill_ms: float | None = None
     decode_ms: float | None = None
+    ts_send_ns: int | None = None
+    ts_recv_ns: int | None = None
+    ts_done_ns: int | None = None
+    ts_resp_ns: int | None = None
+    network_rtt_ms: float | None = None
+    server_queue_ms: float | None = None
+    server_compute_ms: float | None = None
 
 
 class TraceRecord(StrictBaseModel):

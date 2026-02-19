@@ -60,6 +60,8 @@ class AsyncLLMClient:
                 "total_ms": body.get("total_ms"),
                 "prefill_ms": body.get("prefill_ms"),
                 "decode_ms": body.get("decode_ms"),
+                "ts_recv_ns": body.get("ts_recv_ns"),
+                "ts_done_ns": body.get("ts_done_ns"),
                 "attempts": attempt + 1,
                 "elapsed_ms": (time.perf_counter() - started) * 1000.0,
             }
