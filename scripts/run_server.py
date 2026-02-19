@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 
 import uvicorn
@@ -22,6 +23,8 @@ def main() -> None:
     parser.add_argument("--config", required=True)
     parser.add_argument("--manifest-path", default=None)
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
 
     config = load_server_config(args.config)
     set_reproducible(config.seed)

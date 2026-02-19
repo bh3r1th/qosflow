@@ -10,10 +10,10 @@
 
 Run at least these two conditions using the same prompts and offered load:
 
-1. **Batching ON** (baseline): keep batching enabled (for example, `max_num_seqs: 16`, `max_num_batched_tokens: 2048`).
-2. **Batching OFF** (control): disable effective batching by setting `max_num_seqs: 1` and `max_num_batched_tokens` to a single-request budget.
+1. **Batching ON** (baseline): set `dynamic_batching: true` and use your intended batching knobs (for example, `max_num_seqs: 16`, `max_num_batched_tokens: 2048`).
+2. **Batching OFF** (control): set `dynamic_batching: false`. The server enforces effective single-request behavior (`max_num_seqs=1`, `max_num_batched_tokens=1`, `scheduler_delay_ms=0`) regardless of configured knob values.
 
-Keep all other settings unchanged between ON/OFF.
+Keep all other settings unchanged between ON/OFF, and run both conditions for every experiment comparison.
 
 ## Commands (Makefile targets)
 
@@ -29,7 +29,7 @@ make setup
 make run-server
 ```
 
-Before each run, set `configs/server.yaml` for either batching ON or OFF.
+Before each run, set `configs/server.yaml` for either `dynamic_batching: true` (ON) or `dynamic_batching: false` (OFF).
 
 ### 3) Generate load
 
@@ -50,3 +50,9 @@ make detect-phase
 ```
 
 Repeat steps 2-5 for both batching conditions and compare the resulting metrics.
+## Server-side validation and audit
+
+At startup, `qosflow/server/validate.py` logs the effective batching mode and effective knobs.
+
+Each `/generate` response includes `batching_mode` with value `"on"` or `"off"` to make the active mode explicit in online measurements.
+

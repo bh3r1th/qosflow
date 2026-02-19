@@ -39,6 +39,7 @@ def _server_config() -> ServerConfig:
         temperature=0.1,
         top_p=0.9,
         seed=42,
+        dynamic_batching=True,
         max_num_seqs=8,
         max_num_batched_tokens=1024,
         scheduler_delay_ms=0,
