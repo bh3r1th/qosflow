@@ -5,16 +5,15 @@ import asyncio
 import random
 import time
 
-import httpx
-
+from qosflow.common.client import AsyncLLMClient
 from qosflow.common.config import load_yaml
 
 
-async def worker(client: httpx.AsyncClient, target_url: str, duration_s: float, rate: float) -> None:
+async def worker(client: AsyncLLMClient, duration_s: float, rate: float) -> None:
     end_at = time.monotonic() + duration_s
     while time.monotonic() < end_at:
         await asyncio.sleep(random.expovariate(rate))
-        await client.post(target_url, json={"prompt": "hello", "max_tokens": 16})
+        await client.generate("hello", params={"max_new_tokens": 16})
 
 
 def main() -> None:
@@ -24,14 +23,15 @@ def main() -> None:
     cfg = load_yaml(args.config)
 
     async def run() -> None:
-        timeout = float(cfg.get("timeout_s", 30.0))
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            await worker(
-                client,
-                str(cfg.get("target_url", "http://127.0.0.1:8000/v1/completions")),
-                float(cfg.get("duration_s", 10.0)),
-                float(cfg.get("poisson_rate", 2.0)),
-            )
+        client = AsyncLLMClient(
+            base_url=str(cfg.get("target_url", "http://127.0.0.1:8000")),
+            timeout=float(cfg.get("timeout_s", 30.0)),
+        )
+        await worker(
+            client,
+            float(cfg.get("duration_s", 10.0)),
+            float(cfg.get("poisson_rate", 2.0)),
+        )
 
     asyncio.run(run())
 
