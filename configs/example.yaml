@@ -1,0 +1,32 @@
+server:
+  host: 0.0.0.0
+  port: 8000
+  model: meta-llama/Llama-3.1-8B-Instruct
+  dtype: bfloat16
+  max_new_tokens: 256
+  temperature: 0.7
+  top_p: 0.95
+  seed: 42
+  max_num_seqs: 128
+  max_num_batched_tokens: 8192
+  scheduler_delay_ms: 5
+
+loadgen:
+  arrival_rate_rps: 12.5
+  concurrency: 16
+  duration_s: 120
+  warmup_s: 15
+  repeats: 3
+  prompt_source: data/prompts.jsonl
+  mix:
+    short: 0.5
+    med: 0.3
+    long: 0.2
+
+eval:
+  enable_embeddings: true
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+
+experiment:
+  name: baseline-balanced-mix
+  output_dir: outputs/baseline-balanced-mix
