@@ -39,6 +39,7 @@ class LoadGenConfig(StrictBaseModel):
     duration_s: int
     warmup_s: int
     repeats: int
+    telemetry_interval_s: float = 0.5
     prompt_source: Path
     mix: LoadMixConfig
 

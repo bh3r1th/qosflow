@@ -4,6 +4,8 @@ import asyncio
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from qosflow.common.config import ExperimentConfig, LoadGenConfig, LoadMixConfig, ServerConfig
 from qosflow.common.io import read_jsonl
 from qosflow.common.schema import PromptRecord
@@ -19,6 +21,26 @@ class _DeterministicRng:
 
     def choice(self, population):  # noqa: ANN001, ANN201
         return population[0]
+
+
+class _FakeSampler:
+    def __init__(self, telemetry_interval_s: float = 0.5) -> None:
+        self.telemetry_interval_s = telemetry_interval_s
+        self.started = False
+        self.stopped = False
+
+    def start(self) -> None:
+        self.started = True
+
+    async def stop(self) -> None:
+        self.stopped = True
+
+    def write_csv(self, path: Path) -> None:
+        path.write_text(
+            "timestamp,gpu_util,mem_used_mb,mem_total_mb,power_w,temp_c\n"
+            "2025-01-01T00:00:00+00:00,50,1000,2000,120,70\n",
+            encoding="utf-8",
+        )
 
 
 class _FakeClient:
@@ -114,3 +136,37 @@ def test_run_load_respects_warmup_and_repeats(tmp_path: Path) -> None:
     assert first["ts_done_ns"] == 2_000_500_000
     assert first["server_compute_ms"] == 0.5
     assert first["server_queue_ms"] >= 0.0
+
+
+def test_run_load_writes_telemetry_csv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    loadgen = LoadGenConfig(
+        arrival_rate_rps=20.0,
+        concurrency=1,
+        duration_s=1,
+        warmup_s=0,
+        repeats=1,
+        telemetry_interval_s=0.1,
+        prompt_source=tmp_path / "prompts.jsonl",
+        mix=LoadMixConfig(short=1.0, med=0.0, long=0.0),
+    )
+    experiment = ExperimentConfig(name="exp", output_dir=tmp_path)
+    prompts = [PromptRecord(prompt_id="p-short", text="tiny", length_bucket="short")]
+
+    monkeypatch.setattr("qosflow.loadgen.runner.NVMLSampler", _FakeSampler)
+
+    summary = asyncio.run(
+        run_load(
+            _server_config(),
+            loadgen,
+            experiment,
+            prompts,
+            now=datetime(2025, 1, 2, 3, 4, 5, tzinfo=UTC),
+            rng=_DeterministicRng(),
+            client_factory=lambda: _FakeClient(),
+        )
+    )
+
+    telemetry_path = summary.trace_path.parent / "telemetry.csv"
+    assert telemetry_path.exists()
+    lines = telemetry_path.read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 2

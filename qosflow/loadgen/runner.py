@@ -22,6 +22,7 @@ from qosflow.common.schema import (
     TraceServerSnapshot,
     TraceSystem,
 )
+from qosflow.common.telemetry import NVMLSampler
 from qosflow.loadgen.mix import PromptMixSampler
 
 
@@ -81,12 +82,10 @@ async def run_load(
     run_ts = now or datetime.now(tz=UTC)
     run_id = build_run_id(run_ts, server_config, loadgen_config, experiment_config)
     trace_path = (
-        ensure_dir(experiment_config.output_dir)
-        / "traces"
-        / f"run_id={run_id}"
-        / "trace.jsonl"
+        ensure_dir(experiment_config.output_dir) / "traces" / f"run_id={run_id}" / "trace.jsonl"
     )
     ensure_dir(trace_path.parent)
+    telemetry_path = trace_path.parent / "telemetry.csv"
 
     schedule_rng = rng or random.Random()
     sampler = PromptMixSampler(
@@ -131,6 +130,8 @@ async def run_load(
 
     warmup_end = time.monotonic() + float(loadgen_config.warmup_s)
     stop_at = warmup_end + float(loadgen_config.duration_s)
+    telemetry_sampler = NVMLSampler(telemetry_interval_s=loadgen_config.telemetry_interval_s)
+    telemetry_sampler.start()
 
     async def fire_request(prompt: PromptRecord, repeat_idx: int, should_record: bool) -> None:
         async with semaphore:
@@ -255,6 +256,8 @@ async def run_load(
         if tasks:
             await asyncio.gather(*tasks)
     finally:
+        await telemetry_sampler.stop()
+        telemetry_sampler.write_csv(telemetry_path)
         await client.aclose()
 
     return LoadGenSummary(

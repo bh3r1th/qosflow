@@ -30,3 +30,7 @@ detect-phase:
 
 run-sweep:
 	$(PYTHON) scripts/run_sweep.py --config configs/sweep.yaml
+
+
+summarize-telemetry:
+	$(PYTHON) scripts/summarize_telemetry.py --input data/telemetry.csv --output data/telemetry_summary.json
