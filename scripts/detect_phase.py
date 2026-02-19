@@ -42,7 +42,9 @@ def _to_phase_row(metrics: dict[str, Any], source_path: str) -> dict[str, Any]:
     return row
 
 
-def run_detect_phase(input_glob: str, output_dir: str | Path, bootstrap_samples: int = 200) -> dict[str, float]:
+def run_detect_phase(
+    input_glob: str, output_dir: str | Path, bootstrap_samples: int = 200
+) -> dict[str, float]:
     metric_paths = sorted(glob(input_glob))
     if not metric_paths:
         raise ValueError(f"No files matched: {input_glob}")
@@ -66,13 +68,18 @@ def run_detect_phase(input_glob: str, output_dir: str | Path, bootstrap_samples:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-glob", required=True, help="Glob for per-load eval metric files (.json/.csv)")
+    parser.add_argument("--input-glob", help="Glob for per-load eval metric files (.json/.csv)")
+    parser.add_argument("--summary-csv", help="Path to sweep summary.csv")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--bootstrap-samples", type=int, default=200)
     args = parser.parse_args()
 
+    input_glob = args.summary_csv or args.input_glob
+    if not input_glob:
+        parser.error("one of --input-glob or --summary-csv is required")
+
     result = run_detect_phase(
-        input_glob=args.input_glob,
+        input_glob=input_glob,
         output_dir=args.output_dir,
         bootstrap_samples=args.bootstrap_samples,
     )
