@@ -6,6 +6,7 @@ max_new_tokens: 64
 temperature: 0.0
 top_p: 1.0
 seed: 7
+dynamic_batching: true
 max_num_seqs: 16
 max_num_batched_tokens: 2048
 scheduler_delay_ms: 0

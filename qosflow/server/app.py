@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from qosflow.common.config import ServerConfig
+from qosflow.server.validate import BatchingMode, log_effective_batching
 from qosflow.server.vllm_backend import VLLMBackend
 
 
@@ -24,6 +25,7 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     text: str
     total_ms: float
+    batching_mode: BatchingMode
     prefill_ms: None = None
     decode_ms: None = None
     batch_size: None = None
@@ -34,7 +36,9 @@ def create_app(config: ServerConfig) -> FastAPI:
 
     @app.on_event("startup")
     def startup() -> None:
-        app.state.backend = VLLMBackend(config)
+        effective_config, batching_mode = log_effective_batching(config)
+        app.state.batching_mode = batching_mode
+        app.state.backend = VLLMBackend(effective_config)
 
     @app.post("/generate", response_model=GenerateResponse)
     def generate(req: GenerateRequest) -> GenerateResponse:
@@ -55,6 +59,6 @@ def create_app(config: ServerConfig) -> FastAPI:
             seed=seed,
         )
         total_ms = (time.perf_counter() - started) * 1000.0
-        return GenerateResponse(text=text, total_ms=total_ms)
+        return GenerateResponse(text=text, total_ms=total_ms, batching_mode=app.state.batching_mode)
 
     return app

@@ -24,6 +24,7 @@ server:
   temperature: 0.1
   top_p: 0.9
   seed: 123
+  dynamic_batching: true
   max_num_seqs: 4
   max_num_batched_tokens: 2048
   scheduler_delay_ms: 0

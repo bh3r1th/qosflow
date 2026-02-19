@@ -21,6 +21,7 @@ class ServerConfig(StrictBaseModel):
     temperature: float
     top_p: float
     seed: int
+    dynamic_batching: bool
     max_num_seqs: int
     max_num_batched_tokens: int
     scheduler_delay_ms: int
