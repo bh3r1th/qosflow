@@ -26,6 +26,8 @@ class GenerateResponse(BaseModel):
     text: str
     total_ms: float
     batching_mode: BatchingMode
+    ts_recv_ns: int
+    ts_done_ns: int
     prefill_ms: None = None
     decode_ms: None = None
     batch_size: None = None
@@ -50,6 +52,7 @@ def create_app(config: ServerConfig) -> FastAPI:
         )
         seed = config.seed if params.seed is None else params.seed
 
+        ts_recv_ns = time.time_ns()
         started = time.perf_counter()
         text = app.state.backend.generate(
             req.prompt,
@@ -58,7 +61,14 @@ def create_app(config: ServerConfig) -> FastAPI:
             max_new_tokens=max_new_tokens,
             seed=seed,
         )
+        ts_done_ns = time.time_ns()
         total_ms = (time.perf_counter() - started) * 1000.0
-        return GenerateResponse(text=text, total_ms=total_ms, batching_mode=app.state.batching_mode)
+        return GenerateResponse(
+            text=text,
+            total_ms=total_ms,
+            batching_mode=app.state.batching_mode,
+            ts_recv_ns=ts_recv_ns,
+            ts_done_ns=ts_done_ns,
+        )
 
     return app

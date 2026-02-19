@@ -66,6 +66,13 @@ One line per request attempt. `version` is fixed to `"v1"`.
 | `queue_ms` | `number` | Yes | Queue wait latency in ms, if available. |
 | `prefill_ms` | `number` | Yes | Prefill latency in ms, if available. |
 | `decode_ms` | `number` | Yes | Decode latency in ms, if available. |
+| `ts_send_ns` | `integer` | Yes | Client send timestamp (wall-clock ns) captured immediately before HTTP request dispatch. |
+| `ts_recv_ns` | `integer` | Yes | Server receive timestamp (wall-clock ns) captured at request handler entry. |
+| `ts_done_ns` | `integer` | Yes | Server completion timestamp (wall-clock ns) captured after generation returns. |
+| `ts_resp_ns` | `integer` | Yes | Client response timestamp (wall-clock ns) captured immediately after HTTP call completes. |
+| `network_rtt_ms` | `number` | Yes | Approximate network round-trip time: `((ts_resp_ns - ts_send_ns) - (ts_done_ns - ts_recv_ns)) / 1e6`. |
+| `server_queue_ms` | `number` | Yes | Approximate server queue time: `max(0, (ts_recv_ns - ts_send_ns) - network_estimate/2)`, where `network_estimate = network_rtt_ms * 1e6` ns. |
+| `server_compute_ms` | `number` | Yes | Server compute time from server-side timestamps: `(ts_done_ns - ts_recv_ns) / 1e6`. |
 
 ## Invariants
 
@@ -75,3 +82,10 @@ One line per request attempt. `version` is fixed to `"v1"`.
 - `prompt_id` in traces should refer to an existing prompt in the prompt catalog.
 - `prompt_hash` and `output_hash` should be SHA-256 of normalized text (`NFKC`, normalized newlines, trimmed).
 - `prompt_len_chars` and `output_len_chars` should match the captured text lengths used by the run.
+
+## Queue-time approximation notes
+
+- `server_compute_ms` is treated as the server-side total for generation and comes directly from `ts_done_ns - ts_recv_ns`.
+- `network_rtt_ms` subtracts server compute time from end-to-end client-observed elapsed time to estimate transport overhead without engine internals.
+- `server_queue_ms` assumes symmetric client↔server transit (`network_estimate/2` one-way) and clamps at zero to avoid negative queue artifacts from clock skew/jitter.
+- These derived values are best-effort telemetry and should be interpreted as approximations when client/server clocks are not perfectly aligned.
