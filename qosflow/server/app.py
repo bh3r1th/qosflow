@@ -1,46 +1,60 @@
 from __future__ import annotations
 
-import argparse
+import time
 
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from qosflow.common.config import load_yaml
+from qosflow.common.config import ServerConfig
+from qosflow.server.vllm_backend import VLLMBackend
 
-app = FastAPI(title="qosflow-vllm-server")
+
+class GenerateParams(BaseModel):
+    temperature: float | None = None
+    top_p: float | None = None
+    max_new_tokens: int | None = None
+    seed: int | None = None
 
 
-class CompletionRequest(BaseModel):
+class GenerateRequest(BaseModel):
     prompt: str
-    max_tokens: int = 64
+    params: GenerateParams = Field(default_factory=GenerateParams)
 
 
-@app.get("/healthz")
-def healthz() -> dict[str, str]:
-    return {"status": "ok"}
+class GenerateResponse(BaseModel):
+    text: str
+    total_ms: float
+    prefill_ms: None = None
+    decode_ms: None = None
+    batch_size: None = None
 
 
-@app.post("/v1/completions")
-def completions(req: CompletionRequest) -> dict[str, str | int]:
-    # Placeholder for vLLM integration.
-    return {"text": req.prompt[: req.max_tokens], "tokens": min(len(req.prompt), req.max_tokens)}
+def create_app(config: ServerConfig) -> FastAPI:
+    app = FastAPI(title="qosflow-vllm-server")
 
+    @app.on_event("startup")
+    def startup() -> None:
+        app.state.backend = VLLMBackend(config)
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True)
-    args = parser.parse_args()
-    cfg = load_yaml(args.config)
+    @app.post("/generate", response_model=GenerateResponse)
+    def generate(req: GenerateRequest) -> GenerateResponse:
+        params = req.params
+        temperature = config.temperature if params.temperature is None else params.temperature
+        top_p = config.top_p if params.top_p is None else params.top_p
+        max_new_tokens = (
+            config.max_new_tokens if params.max_new_tokens is None else params.max_new_tokens
+        )
+        seed = config.seed if params.seed is None else params.seed
 
-    import uvicorn
+        started = time.perf_counter()
+        text = app.state.backend.generate(
+            req.prompt,
+            temperature=temperature,
+            top_p=top_p,
+            max_new_tokens=max_new_tokens,
+            seed=seed,
+        )
+        total_ms = (time.perf_counter() - started) * 1000.0
+        return GenerateResponse(text=text, total_ms=total_ms)
 
-    uvicorn.run(
-        "qosflow.server.app:app",
-        host=cfg.get("host", "0.0.0.0"),
-        port=int(cfg.get("port", 8000)),
-        reload=bool(cfg.get("reload", False)),
-    )
-
-
-if __name__ == "__main__":
-    main()
+    return app

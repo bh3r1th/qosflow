@@ -17,7 +17,7 @@ test:
 	pytest
 
 run-server:
-	$(PYTHON) -m qosflow.server.app --config configs/server.yaml
+	$(PYTHON) scripts/run_server.py --config configs/server.yaml
 
 run-load:
 	$(PYTHON) -m qosflow.loadgen.poisson --config configs/load.yaml
