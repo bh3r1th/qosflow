@@ -15,9 +15,35 @@ def main() -> None:
         description="Run poisson async load generation against a server"
     )
     parser.add_argument("--config", required=True, help="Path to qosflow YAML config")
+    parser.add_argument(
+        "--arrival-rate",
+        type=float,
+        default=None,
+        help="Override loadgen.arrival_rate_rps from the config",
+    )
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=None,
+        help="Override loadgen.concurrency from the config",
+    )
+    parser.add_argument(
+        "--duration-s",
+        type=int,
+        default=None,
+        help="Override loadgen.duration_s from the config",
+    )
     args = parser.parse_args()
 
     config = QoSFlowConfig.from_yaml(args.config)
+    if args.arrival_rate is not None:
+        config.loadgen.arrival_rate_rps = args.arrival_rate
+    if args.concurrency is not None:
+        config.loadgen.concurrency = args.concurrency
+    if args.duration_s is not None:
+        config.loadgen.duration_s = args.duration_s
+
+    print(f"effective_loadgen_config={config.loadgen.model_dump(mode='json')}")
     set_reproducible(config.server.seed)
 
     run_ts = datetime.now(tz=UTC)
