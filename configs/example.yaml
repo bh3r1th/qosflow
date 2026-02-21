@@ -1,15 +1,22 @@
 server:
   host: 0.0.0.0
   port: 8000
+
+  # Explicit GPU + memory-friendly defaults for Colab A100.
+  # (Server code should load with vLLM on CUDA by default.)
   model: meta-llama/Llama-3.1-8B-Instruct
-  dtype: bfloat16
+  dtype: float16
+
+  # Generation params (kept constant for phase-transition experiments)
   max_new_tokens: 256
   temperature: 0.7
   top_p: 0.95
   seed: 42
+
+  # Batching / scheduling knobs
   dynamic_batching: true
-  max_num_seqs: 128
-  max_num_batched_tokens: 8192
+  max_num_seqs: 64
+  max_num_batched_tokens: 4096
   scheduler_delay_ms: 5
 
 loadgen:
