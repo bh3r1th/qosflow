@@ -12,6 +12,7 @@ class VLLMBackend:
         from vllm import LLM
 
         self._llm = LLM(
+        gpu_memory_utilization=0.75,
             model=config.model,
             dtype=config.dtype,
             max_num_seqs=config.max_num_seqs,

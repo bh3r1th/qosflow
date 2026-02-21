@@ -65,12 +65,6 @@ class AsyncLLMClient:
                 "attempts": attempt + 1,
                 "elapsed_ms": (time.perf_counter() - started) * 1000.0,
             }
-            elapsed_ms = (time.perf_counter() - started) * 1000.0
-            try:
-                body['latency_ms'] = float(body.get('total_ms', elapsed_ms))
-            except Exception:
-                body['latency_ms'] = float(elapsed_ms)
-
             return text, timings, status
 
     async def aclose(self) -> None:

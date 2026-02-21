@@ -7,17 +7,13 @@ import time
 
 from qosflow.common.client import AsyncLLMClient
 from qosflow.common.config import load_yaml
-import json
 
 
 async def worker(client: AsyncLLMClient, duration_s: float, rate: float) -> None:
     end_at = time.monotonic() + duration_s
     while time.monotonic() < end_at:
         await asyncio.sleep(random.expovariate(rate))
-        text, meta, status = await client.generate("hello", params={"max_new_tokens": 16})
-        meta["status_code"] = int(status)
-        with open("load.out", "a", encoding="utf-8") as f:
-            f.write(json.dumps(meta) + "\n")
+        await client.generate("hello", params={"max_new_tokens": 16})
 
 
 def main() -> None:
